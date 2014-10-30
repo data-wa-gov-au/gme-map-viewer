@@ -1,0 +1,270 @@
+<!doctype html>
+<html ng-app="mapApp" ng-controller="AppCtrl" ng-init="init()" class="no-js">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+    <title>{{mapTree.name}} - SLIP POC Viewer</title>
+    <meta name="description" content="">
+
+    <!-- Polymer -->
+    <!-- 1. Load platform.js for polyfill support. -->
+    <!-- <script src="bower_components/platform/platform.js"></script> -->
+
+    <!-- 2. Use an HTML Import to bring in the element. -->
+    <!-- <link rel="import" href="http://www.polymer-project.org/components/core-icons/core-icons.html"> -->
+    <link rel="import" href="http://www.polymer-project.org/components/google-map/google-map.html">
+
+    <!-- 3. Custom Elements -->
+    <polymer-element name="my-google-map" extends="google-map">
+      <script>
+        Polymer({
+
+          // mapApiLoaded: function() {
+            // console.log("mapApiLoaded");
+            // console.log(this.super);
+          // },
+
+          getMapOptions: function() {
+            var mapOptions = this.super();
+            mapOptions["streetViewControl"] = false;
+            mapOptions["panControl"] = false;
+            mapOptions["zoomControlOptions"] = {
+              style: google.maps.ZoomControlStyle.SMALL,
+              position: google.maps.ControlPosition.RIGHT_BOTTOM
+            };
+            return mapOptions;
+          },
+
+          getMap: function() {
+            return this.map;
+          },
+
+          getMapControls: function() {
+            return this.map.controls;
+          }
+
+        });
+
+      </script>
+      <template>
+        <style>
+         :host {
+            position: relative;
+          }
+
+          #map {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+          }
+
+          .gm-style-iw {
+            font-family: Roboto;
+            font-size: smaller;
+          }
+
+
+
+          #pac-input {
+            background-color: #fff;
+            padding: 0 11px 0 13px;
+            width: 200px;
+            font-family: Roboto;
+            font-size: 15px;
+            font-weight: 300;
+            text-overflow: ellipsis;
+            margin-left: 10px;
+            margin-top: 10px;
+          }
+
+          #pac-input:focus {
+            border-color: #4d90fe;
+            margin-left: 9px;
+            padding-left: 14px;  /* Regular padding-left + 1. */
+            width: 401px;
+          }
+
+          .pac-container {
+            font-family: Roboto;
+          }
+        </style>
+
+        <google-maps-api apiKey="{{apiKey}}" version="{{version}}" on-api-load="{{mapApiLoaded}}" libraries="{{libraries}}"></google-maps-api>
+
+        <div id="map"></div>
+
+        <content id="markers" select="google-map-marker"></content>
+      </template>
+    </polymer-element>
+
+    <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+    <!-- build:css(.) styles/vendor.css -->
+    <!-- bower:css -->
+    <link rel="stylesheet" href="bower_components/angular-material/angular-material.css" />
+    <!-- endbower -->
+    <!-- endbuild -->
+    <!-- build:css(.tmp) styles/main.css -->
+    <link rel="stylesheet" href="styles/main.css">
+    <!-- endbuild -->
+  </head>
+  <!-- <body ng-app="mapApp"> -->
+  <body fullbleed vertical layout>
+    <!--[if lt IE 7]>
+      <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+    <![endif]-->
+
+    <section layout="horizontal" flex>
+      <md-sidenav class="md-sidenav-left md-whiteframe-z2" component-id="left">
+        <md-toolbar class="md-theme-indigo">
+          <h1 class="md-toolbar-tools">{{mapTree.name}}</h1>
+        </md-toolbar>
+
+        <div >
+          <md-content class="md-content-padding" style="overflow-y: scroll; padding-top: 70px;" fit>
+            <md-button class="md-fab" aria-label="Time">
+              <md-icon icon="https://material.angularjs.org/img/icons/ic_people_24px.svg" style="width: 24px; height: 24px;"></md-icon>
+            </md-button>
+
+            <div ng-bind-html="mapTree.description" class="map-description"></div>
+
+            <div id="map-tree-panel">
+              <map-tree family="mapTree.contents">
+
+              </map-tree>
+            </div>
+          </md-content>
+        </div>
+      </md-sidenav>
+
+      <md-content flex class="md-content-padding">
+        <div layout="vertical" layout-fill layout-align="center center">
+          <my-google-map libraries="visualization,places" latitude="-25.779" longitude="120" zoom="5" minZoom="4" maxZoom="20" fit>
+            <input id="pac-input" class="controls" type="text" placeholder="Enter a location">
+          </my-google-map>
+          <script>
+          var map = document.querySelector('my-google-map');
+          map.addEventListener('google-map-ready', function(e) {
+            // Create the search box and link it to the UI element.
+            var map = document.querySelector('my-google-map');
+            var input = /** @type {HTMLInputElement} */(
+                document.getElementById('pac-input'));
+            console.log(input);
+            map.getMapControls()[google.maps.ControlPosition.TOP_LEFT].push(input);
+
+            var searchBox = new google.maps.places.SearchBox(
+              /** @type {HTMLInputElement} */(input));
+
+            // Listen for the event fired when the user selects an item from the
+            // pick list. Retrieve the matching places for that item.
+            google.maps.event.addListener(searchBox, 'places_changed', function() {
+              var places = searchBox.getPlaces();
+
+              if (places.length == 0) {
+                return;
+              }
+              markers = [];
+              for (var i = 0, marker; marker = markers[i]; i++) {
+                marker.setMap(null);
+              }
+
+              // For each place, get the icon, place name, and location.
+              var bounds = new google.maps.LatLngBounds();
+              for (var i = 0, place; place = places[i]; i++) {
+                var image = {
+                  url: place.icon,
+                  size: new google.maps.Size(71, 71),
+                  origin: new google.maps.Point(0, 0),
+                  anchor: new google.maps.Point(17, 34),
+                  scaledSize: new google.maps.Size(25, 25)
+                };
+
+                // Create a marker for each place.
+                var marker = new google.maps.Marker({
+                  map: map.map,
+                  icon: image,
+                  title: place.name,
+                  position: place.geometry.location
+                });
+
+                markers.push(marker);
+
+                bounds.extend(place.geometry.location);
+              }
+
+              map.map.fitBounds(bounds);
+            });
+
+            // Bias the SearchBox results towards places that are within the bounds of the
+            // current map's viewport.
+            google.maps.event.addListener(map, 'bounds_changed', function() {
+              var bounds = map.getBounds();
+              searchBox.setBounds(bounds);
+            });
+          });
+          </script>
+        </div>
+      </md-content>
+    </section>
+
+    <!-- Add your site or application content here -->
+    <!-- <div class="container">
+      <div class="header">
+        <ul class="nav nav-pills pull-right">
+          <li class="active"><a ng-href="#">Home</a></li>
+          <li><a ng-href="#/about">About</a></li>
+          <li><a ng-href="#">Contact</a></li>
+        </ul>
+        <h3 class="text-muted">map</h3>
+      </div>
+
+      <div ng-view=""></div>
+
+      <div class="footer">
+        <p><span class="glyphicon glyphicon-heart"></span> from the Yeoman team</p>
+      </div>
+    </div> -->
+
+
+    <!-- Google Analytics: change UA-XXXXX-X to be your site's ID -->
+     <!-- <script>
+       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+       (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+       m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+       })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+       ga('create', 'UA-XXXXX-X');
+       ga('send', 'pageview');
+    </script> -->
+
+    <!-- build:js(.) scripts/oldieshim.js -->
+    <!--[if lt IE 9]>
+    <script src="bower_components/es5-shim/es5-shim.js"></script>
+    <script src="bower_components/json3/lib/json3.js"></script>
+    <![endif]-->
+    <!-- endbuild -->
+
+    <!-- build:js(.) scripts/vendor.js -->
+    <!-- bower:js -->
+    <script src="bower_components/angular/angular.js"></script>
+    <script src="bower_components/angular-resource/angular-resource.js"></script>
+    <script src="bower_components/angular-cookies/angular-cookies.js"></script>
+    <script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
+    <script src="bower_components/angular-animate/angular-animate.js"></script>
+    <script src="bower_components/angular-touch/angular-touch.js"></script>
+    <script src="bower_components/angular-route/angular-route.js"></script>
+    <script src="bower_components/angular-aria/angular-aria.js"></script>
+    <script src="bower_components/hammerjs/hammer.js"></script>
+    <script src="bower_components/angular-material/angular-material.js"></script>
+    <script src="bower_components/angular-recursion/angular-recursion.js"></script>
+    <!-- endbower -->
+    <!-- endbuild -->
+
+    <!-- build:js({.tmp,app}) scripts/scripts.js -->
+    <script src="scripts/app.js"></script>
+    <script src="scripts/controllers/main.js"></script>
+    <script src="scripts/controllers/about.js"></script>
+    <!-- endbuild -->
+</body>
+</html>

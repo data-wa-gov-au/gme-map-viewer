@@ -1,0 +1,54 @@
+.listdemoBasicUsage .face {
+  /*border-radius: 30px;
+  border: 1px solid #ddd;
+  width: 48px;
+  margin: 16px;*/
+}
+
+md-content > md-list {
+  /*margin-left: -15px;*/
+}
+
+md-list {
+  display: inline-block;
+  margin-left: 15px;
+}
+
+md-checkbox {
+  margin: 0px;
+}
+
+.md-tile-content .md-label {
+  /*margin-left: 20px;*/
+}
+
+
+tree {
+    margin-left: 20px;
+    display: block;
+}
+
+map-tree ul {
+  list-style-type: none;
+  padding-left: 10px;
+}
+
+#map-tree-panel {
+  margin-left: -15px;
+}
+
+.map-tree-folder {
+  padding-bottom: 5px;
+}
+
+.map-description {
+  font-size: smaller;
+}
+
+md-slider {
+  height: 35px;
+  margin-left: 33px;
+  margin-right: 30px;
+  margin-top: -8px;
+  margin-bottom: 6px;
+}
